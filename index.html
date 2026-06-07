@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--orange:#E87722;--orange-soft:rgba(232,119,34,0.12);--navy:#1C2333;--navy-mid:#2a3448;--sand:#F9F5EF;--cream:#FDFAF6;--text:#1C2333;--text-mid:#4A5568;--text-muted:#8A97A8;--green:#2D7D52;--green-soft:rgba(45,125,82,0.12);--gold-soft:rgba(212,168,83,0.15);--white:#FFFFFF;--nav-h:72px;--shadow-sm:0 2px 12px rgba(28,35,51,0.08);--shadow-md:0 6px 28px rgba(28,35,51,0.12)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'DM Sans',sans-serif;background:var(--cream);display:block;min-height:100vh;margin:0;padding:0}
+html{height:-webkit-fill-available}body{font-family:'DM Sans',sans-serif;background:var(--cream);display:block;min-height:100vh;min-height:-webkit-fill-available;margin:0;padding:0}
 .proto-label{display:none}
-.phone{width:100vw;max-width:none;height:100vh;border-radius:0;background:var(--cream);overflow:hidden;position:relative;box-shadow:none;flex-shrink:0}
+.phone{width:100vw;max-width:none;height:100vh;height:-webkit-fill-available;border-radius:0;background:var(--cream);overflow:hidden;position:relative;box-shadow:none;flex-shrink:0}
 .notch{display:none}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--cream);transition:transform 0.38s cubic-bezier(.4,0,.2,1),opacity 0.3s}
 .screen.hidden{transform:translateY(100%);opacity:0;pointer-events:none}
