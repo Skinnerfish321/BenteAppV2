@@ -80,10 +80,11 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'SF Pro
 .float-status { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
 .online-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; }
 .float-msg {
-  font-size: 16.5px; line-height: 1.5; color: var(--text);
+  font-size: 16.5px; line-height: 1.45; color: var(--text);
   background: var(--surface); border-radius: 12px; padding: 10px 12px;
   margin-bottom: 12px;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; max-height: calc(1.45em * 2 + 20px);
 }
 .float-chat-btn {
   width: 100%; padding: 15px; border: none; border-radius: 14px;
@@ -176,12 +177,15 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'SF Pro
   width: 34px; height: 34px; color: white; font-size: 16px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
 }
+.scenario-row { display: flex; gap: 8px; margin-top: 10px; }
 .scenario-btn {
-  margin-top: 10px; width: 100%; padding: 11px; border: none; border-radius: 13px;
+  flex: 1; padding: 11px; border: none; border-radius: 13px;
   background: rgba(255,255,255,0.22); color: white; font-size: 14px; font-weight: 700;
-  cursor: pointer; backdrop-filter: blur(4px); transition: background .15s;
+  cursor: pointer; backdrop-filter: blur(4px); transition: background .15s, opacity .15s;
 }
 .scenario-btn:active { background: rgba(255,255,255,0.35); }
+.scenario-btn.end { background: rgba(0,0,0,0.18); }
+.scenario-btn.end.hidden-btn { display: none; }
 
 .chat-msgs {
   flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
@@ -203,6 +207,12 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'SF Pro
   letter-spacing: 0.8px; color: rgba(255,255,255,0.75); margin-bottom: 4px;
 }
 .scenario-banner .sb-desc { font-size: 16px; font-weight: 800; }
+.scenario-banner.ended {
+  background: var(--surface); color: var(--muted);
+  border: 1px solid var(--line); box-shadow: none;
+}
+.scenario-banner.ended .sb-lbl { color: var(--light); }
+.scenario-banner.ended .sb-desc { color: var(--muted); font-weight: 700; }
 .msg-row { display: flex; flex-direction: column; }
 .msg-row.user { align-items: flex-end; }
 .msg-row.bot { align-items: flex-start; }
@@ -455,7 +465,10 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'SF Pro
       <div class="streak-chip">🔥 <span id="streak-chip-n">0</span></div>
       <button class="hdr-btn" onclick="toggleTTS()" id="tts-btn">🔊</button>
     </div>
-    <button class="scenario-btn" onclick="newScenario()">🎭 Start een scenario</button>
+    <div class="scenario-row">
+      <button class="scenario-btn" onclick="newScenario()">🎭 Start een scenario</button>
+      <button class="scenario-btn end" id="end-scenario-btn" onclick="endScenario()">✖ Stop scenario</button>
+    </div>
   </div>
   <div class="chat-msgs" id="msgs"></div>
   <div class="chat-input-wrap">
@@ -563,7 +576,7 @@ const SCENARIOS = [
 
 // ═══ INIT ═══
 function init() {
-  setWOD(); refreshStreakUI(); refreshHome(); renderBank(); initTTS();
+  setWOD(); refreshStreakUI(); refreshHome(); renderBank(); initTTS(); updateScenarioButtons();
   if (!apiKey) {
     document.getElementById('api-gate').classList.remove('hidden');
   } else {
@@ -725,6 +738,7 @@ function restoreChat() {
 function renderLogItem(h) {
   if (h.t === 'sys') addSys(h.text, false);
   else if (h.t === 'scenario') addScenarioBanner(h.text, false);
+  else if (h.t === 'scenario_end') addScenarioEndBanner(false);
   else if (h.t === 'user') addUser(h.typed, h.sent, false);
   else if (h.t === 'bot') addBot(h.dutch, h.english, null, false);
 }
@@ -735,6 +749,7 @@ function newScenario(nav=true) {
   localStorage.setItem('bente_scenario', currentScenario);
   document.getElementById('ch-status').textContent = currentScenario.replace(/^.{2,3}\s/,'').slice(0,30);
   addScenarioBanner(currentScenario);
+  updateScenarioButtons();
   if (nav) goTo('chat');
   greet();
 }
@@ -861,6 +876,25 @@ function addScenarioBanner(scenario, save=true) {
   el.innerHTML=`<div class="sb-lbl">🎭 Nieuw scenario gestart</div><div class="sb-desc">${esc(scenario)}</div>`;
   msgsEl().appendChild(el); scrollDown();
   if (save) { chatLog.push({t:'scenario',text:scenario}); persist(); }
+}
+function addScenarioEndBanner(save=true) {
+  const el = document.createElement('div');
+  el.className='scenario-banner ended';
+  el.innerHTML=`<div class="sb-lbl">✖ Scenario beëindigd</div><div class="sb-desc">Gewoon gesprek met Bente</div>`;
+  msgsEl().appendChild(el); scrollDown();
+  if (save) { chatLog.push({t:'scenario_end'}); persist(); }
+}
+function endScenario() {
+  if (!currentScenario) { toast('Geen actief scenario'); return; }
+  currentScenario = '';
+  localStorage.setItem('bente_scenario', '');
+  document.getElementById('ch-status').textContent = 'Leiden · online';
+  addScenarioEndBanner();
+  updateScenarioButtons();
+  persist();
+}
+function updateScenarioButtons() {
+  document.getElementById('end-scenario-btn').classList.toggle('hidden-btn', !currentScenario);
 }
 function addDraft(text) {
   const el = document.createElement('div');
